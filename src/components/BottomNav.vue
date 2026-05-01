@@ -21,12 +21,12 @@ const router = useRouter()
       </svg>
     </button>
 
-    <router-link to="/charts" class="nav-item" :class="{ active: route.path === '/charts' }">
+    <router-link to="/savings" class="nav-item" :class="{ active: route.path === '/savings' }">
       <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M3 3v18h18" />
-        <path d="M7 16l4-6 4 4 5-8" />
+        <path d="M12 3v18" />
+        <path d="M7 7.5c0-2.1 2-3.5 5-3.5s5 1.4 5 3.5c0 4-10 2.6-10 6.8C7 16.6 9 18 12 18s5-1.4 5-3.5" />
       </svg>
-      <span class="nav-label">图表</span>
+      <span class="nav-label">省钱</span>
     </router-link>
   </nav>
 </template>

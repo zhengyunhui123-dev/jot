@@ -2,21 +2,10 @@
 import { useRouter } from 'vue-router'
 import { useExpenseStore } from '../stores/expense.js'
 import { formatDateChinese } from '../utils/calendar.js'
+import { categoryMap, savingReasonMap } from '../data/categories.js'
 
 const router = useRouter()
 const store = useExpenseStore()
-
-const categoryMap = {
-  takeout: { name: '外卖', icon: '🥡', bg: '#e8f0ea' },
-  dining: { name: '堂食', icon: '🍜', bg: '#e4ecf2' },
-  grocery: { name: '买菜', icon: '🛒', bg: '#f0e8d4' },
-  telecom: { name: '通讯', icon: '📱', bg: '#ece4f0' },
-  credit: { name: '还信用卡', icon: '💳', bg: '#f0e4e4' },
-  study: { name: '学习', icon: '📚', bg: '#e0ece8' },
-  fun: { name: '娱乐', icon: '🎮', bg: '#f0e8dc' },
-  badminton: { name: '羽毛球', icon: '🏸', bg: '#e4f0e8' },
-  ai: { name: 'AI', icon: '🤖', bg: '#e4e8f4' }
-}
 
 const paymentLabel = {
   credit: '信用卡',
@@ -60,6 +49,7 @@ function editExpense(id) {
           <span class="item-name">{{ categoryMap[item.category]?.name || item.category }}</span>
           <span class="item-meta">
             {{ paymentLabel[item.paymentMethod] || '' }}
+            <template v-if="item.savingAmount"> · 省 {{ item.savingAmount.toFixed(2) }} · {{ savingReasonMap[item.savingReason] || '省钱' }}</template>
             <template v-if="item.note"> · {{ item.note }}</template>
           </span>
         </div>

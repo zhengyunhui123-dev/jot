@@ -27,12 +27,24 @@ const chartOptions = {
     tooltip: { enabled: false }
   }
 }
+
+const savingCompareText = computed(() => {
+  const diff = store.savingDiff
+  if (diff > 0) return `比上月多省 ¥${diff.toFixed(2)}`
+  if (diff < 0) return `比上月少省 ¥${Math.abs(diff).toFixed(2)}`
+  return '和上月省得一样多'
+})
 </script>
 
 <template>
   <div class="summary-card">
     <div class="summary-main">
       <div class="summary-left">
+        <div class="saving-ribbon">
+          <span>本月已省钱</span>
+          <strong>¥{{ store.totalSaving.toFixed(2) }}</strong>
+          <small>{{ savingCompareText }}</small>
+        </div>
         <div class="summary-label">本月共支出</div>
         <div class="summary-total">
           <span class="yen">¥</span>{{ store.totalExpense.toFixed(2) }}
@@ -88,6 +100,35 @@ const chartOptions = {
 
 .summary-left {
   flex: 1;
+}
+
+.saving-ribbon {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+  padding: 9px 10px;
+  border-radius: 14px;
+  background: var(--green-light);
+  color: var(--green);
+}
+
+.saving-ribbon span {
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.saving-ribbon strong {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.saving-ribbon small {
+  width: 100%;
+  color: var(--text-secondary);
+  font-size: 11px;
 }
 
 .summary-label {

@@ -6,22 +6,11 @@ import {
   CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler
 } from 'chart.js'
 import { useExpenseStore } from '../stores/expense.js'
+import { categoryMap } from '../data/categories.js'
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler)
 
 const store = useExpenseStore()
-
-const categoryMap = {
-  takeout: { name: '外卖', color: '#3d7a50' },
-  dining: { name: '堂食', color: '#4a6e8a' },
-  grocery: { name: '买菜', color: '#b89030' },
-  telecom: { name: '通讯', color: '#7a5a8a' },
-  credit: { name: '还信用卡', color: '#b53a2a' },
-  study: { name: '学习', color: '#2d7a6a' },
-  fun: { name: '娱乐', color: '#b06a30' },
-  badminton: { name: '羽毛球', color: '#2d8a5a' },
-  ai: { name: 'AI', color: '#4a6aaa' }
-}
 
 const categoryChartData = computed(() => {
   const totals = {}
