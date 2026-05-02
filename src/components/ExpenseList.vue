@@ -2,7 +2,9 @@
 import { useRouter } from 'vue-router'
 import { useExpenseStore } from '../stores/expense.js'
 import { formatDateChinese } from '../utils/calendar.js'
-import { categoryMap, savingReasonMap } from '../data/categories.js'
+import { getCategoryMap, savingReasonMap } from '../data/categories.js'
+
+const categoryMap = getCategoryMap()
 
 const router = useRouter()
 const store = useExpenseStore()

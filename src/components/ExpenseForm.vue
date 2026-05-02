@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useExpenseStore } from '../stores/expense.js'
 import AmountKeypad from './AmountKeypad.vue'
-import { categories } from '../data/categories.js'
+import { getAllCategories, addCustomCategory } from '../data/categories.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -12,6 +12,7 @@ const store = useExpenseStore()
 const isEdit = computed(() => !!route.params.id)
 const editId = computed(() => isEdit.value ? Number(route.params.id) : null)
 
+const categories = ref(getAllCategories())
 const selectedCategory = ref('')
 const amount = ref('')
 const expectedAmount = ref('')
@@ -20,6 +21,8 @@ const entryMode = ref('expense')
 const savingReason = ref('coupon')
 const savingStep = ref('expected')
 const showSheet = ref(false)
+const showAddCategory = ref(false)
+const newCategoryName = ref('')
 
 const savingReasons = [
   { key: 'coupon', name: '用了优惠券' },
@@ -70,6 +73,20 @@ function closeSheet() {
     savingReason.value = 'coupon'
     savingStep.value = 'expected'
   }
+}
+
+function openAddCategory() {
+  newCategoryName.value = ''
+  showAddCategory.value = true
+}
+
+function confirmAddCategory() {
+  const name = newCategoryName.value.trim()
+  if (!name) return
+  addCustomCategory(name)
+  categories.value = getAllCategories()
+  showAddCategory.value = false
+  newCategoryName.value = ''
 }
 
 function nextSavingStep() {
@@ -152,7 +169,36 @@ async function remove() {
         <span class="cat-icon" :style="{ background: cat.bg }">{{ cat.icon }}</span>
         <span class="cat-name">{{ cat.name }}</span>
       </button>
+      <button class="cat-item add-cat" @click="openAddCategory">
+        <span class="cat-icon" style="background: var(--bg-tertiary)">＋</span>
+        <span class="cat-name">添加</span>
+      </button>
     </div>
+
+    <!-- 新增类型弹窗 -->
+    <transition name="sheet">
+      <div v-if="showAddCategory" class="sheet-overlay" @click.self="showAddCategory = false">
+        <div class="sheet add-cat-sheet">
+          <div class="sheet-header">
+            <span class="sheet-title">新增类型</span>
+            <button class="sheet-close" @click="showAddCategory = false">
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M5 5L15 15M15 5L5 15" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              </svg>
+            </button>
+          </div>
+          <input
+            v-model="newCategoryName"
+            class="cat-input"
+            type="text"
+            placeholder="输入类型名称"
+            maxlength="6"
+            @keyup.enter="confirmAddCategory"
+          />
+          <button class="save-btn" @click="confirmAddCategory">确定添加</button>
+        </div>
+      </div>
+    </transition>
 
     <!-- 底部弹窗 -->
     <transition name="sheet">
@@ -341,6 +387,43 @@ async function remove() {
   font-weight: 600;
 }
 
+.cat-item.add-cat {
+  border: 2px dashed var(--bg-tertiary);
+  background: transparent;
+  box-shadow: none;
+}
+
+.cat-item.add-cat .cat-icon {
+  background: var(--bg-tertiary);
+  font-size: 18px;
+  color: var(--text-muted);
+}
+
+.cat-item.add-cat .cat-name {
+  color: var(--text-muted);
+}
+
+.add-cat-sheet {
+  padding-bottom: calc(24px + env(safe-area-inset-bottom, 0px));
+}
+
+.cat-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid var(--bg-tertiary);
+  border-radius: var(--radius-md);
+  font-size: 16px;
+  background: var(--bg-card);
+  color: var(--text-primary);
+  outline: none;
+  margin: 8px 0 16px;
+  box-sizing: border-box;
+}
+
+.cat-input:focus {
+  border-color: var(--accent);
+}
+
 /* 底部弹窗 */
 .sheet-overlay {
   position: fixed;
@@ -357,9 +440,9 @@ async function remove() {
   max-width: 480px;
   background: var(--bg-primary);
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
-  padding: 0 16px 32px;
+  padding: 0 16px calc(32px + env(safe-area-inset-bottom, 0px));
   box-shadow: 0 -8px 32px rgba(44, 24, 16, 0.15);
-  max-height: 75vh;
+  max-height: 85vh;
   overflow-y: auto;
 }
 

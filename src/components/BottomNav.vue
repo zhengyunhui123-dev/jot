@@ -7,13 +7,21 @@ const router = useRouter()
 
 <template>
   <nav class="bottom-nav">
-    <router-link to="/" class="nav-item" :class="{ active: route.path === '/' }">
-      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-        <path d="M9 14l2 2 4-4" />
-      </svg>
-      <span class="nav-label">记账</span>
-    </router-link>
+    <div class="nav-group">
+      <router-link to="/" class="nav-item" :class="{ active: route.path === '/' }">
+        <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          <path d="M9 14l2 2 4-4" />
+        </svg>
+        <span class="nav-label">记账</span>
+      </router-link>
+      <router-link to="/charts" class="nav-item" :class="{ active: route.path === '/charts' }">
+        <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M18 20V10M12 20V4M6 20v-6" />
+        </svg>
+        <span class="nav-label">图表</span>
+      </router-link>
+    </div>
 
     <button class="nav-add" @click="router.push('/add')">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
@@ -21,13 +29,22 @@ const router = useRouter()
       </svg>
     </button>
 
-    <router-link to="/savings" class="nav-item" :class="{ active: route.path === '/savings' }">
-      <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
-        <path d="M12 3v18" />
-        <path d="M7 7.5c0-2.1 2-3.5 5-3.5s5 1.4 5 3.5c0 4-10 2.6-10 6.8C7 16.6 9 18 12 18s5-1.4 5-3.5" />
-      </svg>
-      <span class="nav-label">省钱</span>
-    </router-link>
+    <div class="nav-group">
+      <router-link to="/savings" class="nav-item" :class="{ active: route.path === '/savings' }">
+        <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M12 3v18" />
+          <path d="M7 7.5c0-2.1 2-3.5 5-3.5s5 1.4 5 3.5c0 4-10 2.6-10 6.8C7 16.6 9 18 12 18s5-1.4 5-3.5" />
+        </svg>
+        <span class="nav-label">省钱</span>
+      </router-link>
+      <router-link to="/profile" class="nav-item" :class="{ active: route.path === '/profile' }">
+        <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+          <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+        <span class="nav-label">我的</span>
+      </router-link>
+    </div>
   </nav>
 </template>
 
@@ -40,13 +57,20 @@ const router = useRouter()
   width: 100%;
   max-width: 480px;
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
-  height: 64px;
+  height: calc(64px + env(safe-area-inset-bottom, 0px));
+  padding-bottom: env(safe-area-inset-bottom, 0px);
   background: var(--bg-secondary);
   border-top: 1px solid rgba(26, 26, 46, 0.06);
   z-index: 100;
-  padding: 0 24px;
+  padding-left: 16px;
+  padding-right: 16px;
+}
+
+.nav-group {
+  display: flex;
+  flex: 1;
 }
 
 .nav-item {
@@ -57,7 +81,7 @@ const router = useRouter()
   text-decoration: none;
   color: var(--text-muted);
   transition: all 0.2s ease;
-  padding: 8px 28px;
+  padding: 8px 12px;
   flex: 1;
   position: relative;
 }

@@ -1,133 +1,111 @@
 <script setup>
-import { computed } from 'vue'
-import { Pie, Bar, Line } from 'vue-chartjs'
-import {
-  Chart as ChartJS, ArcElement, Tooltip, Legend,
-  CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler
-} from 'chart.js'
+import { ref, computed } from 'vue'
 import { useExpenseStore } from '../stores/expense.js'
-import { categoryMap } from '../data/categories.js'
-
-ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement, Filler)
+import { getCategoryMap } from '../data/categories.js'
 
 const store = useExpenseStore()
+const categoryMap = getCategoryMap()
+const rankType = ref('expense')
 
-const categoryChartData = computed(() => {
-  const totals = {}
+const rankings = computed(() => {
+  const map = {}
   store.monthExpenses.forEach(e => {
-    totals[e.category] = (totals[e.category] || 0) + e.amount
-  })
-  const keys = Object.keys(totals)
-  return {
-    labels: keys.map(k => categoryMap[k]?.name || k),
-    datasets: [{
-      data: keys.map(k => totals[k]),
-      backgroundColor: keys.map(k => categoryMap[k]?.color || '#999'),
-      borderWidth: 0
-    }]
-  }
-})
-
-const categoryChartOptions = {
-  responsive: true,
-  maintainAspectRatio: true,
-  plugins: {
-    legend: {
-      position: 'right',
-      labels: { color: '#5c4030', padding: 10, font: { size: 11, family: 'Noto Sans SC' }, usePointStyle: true, pointStyleWidth: 8 }
+    if (!map[e.category]) {
+      map[e.category] = { category: e.category, expense: 0, saving: 0, count: 0 }
     }
+    map[e.category].expense += e.amount
+    map[e.category].saving += e.savingAmount || 0
+    map[e.category].count++
+  })
+  const list = Object.values(map)
+  if (rankType.value === 'expense') {
+    list.sort((a, b) => b.expense - a.expense)
+  } else {
+    list.sort((a, b) => b.saving - a.saving)
   }
-}
-
-const barChartData = computed(() => ({
-  labels: ['工作日', '休息日'],
-  datasets: [{
-    data: [store.workdayExpense, store.restdayExpense],
-    backgroundColor: ['#3d7a50', '#c9b896'],
-    borderRadius: 6,
-    barThickness: 36
-  }]
-}))
-
-const barChartOptions = {
-  responsive: true,
-  maintainAspectRatio: true,
-  plugins: { legend: { display: false } },
-  scales: {
-    x: { ticks: { color: '#5c4030', font: { size: 12 } }, grid: { display: false } },
-    y: { ticks: { color: '#9a8570', font: { size: 11 } }, grid: { color: 'rgba(44,24,16,0.06)' } }
-  }
-}
-
-const trendData = computed(() => {
-  const months = []
-  let y = store.currentYear, m = store.currentMonth
-  for (let i = 5; i >= 0; i--) {
-    months.push({ year: y, month: m })
-    m--
-    if (m < 1) { m = 12; y-- }
-  }
-  months.reverse()
-
-  return {
-    labels: months.map(i => `${i.month}月`),
-    datasets: [{
-      data: months.map(i => {
-        const prefix = `${i.year}-${String(i.month).padStart(2, '0')}`
-        return store.expenses.filter(e => e.date.startsWith(prefix)).reduce((s, e) => s + e.amount, 0)
-      }),
-      borderColor: '#d4a04a',
-      backgroundColor: 'rgba(212, 160, 74, 0.12)',
-      fill: true,
-      tension: 0.4,
-      pointBackgroundColor: '#d4a04a',
-      pointRadius: 4,
-      pointHoverRadius: 6,
-      borderWidth: 2
-    }]
-  }
+  return list
 })
 
-const trendOptions = {
-  responsive: true,
-  maintainAspectRatio: true,
-  plugins: { legend: { display: false } },
-  scales: {
-    x: { ticks: { color: '#5c4030', font: { size: 12 } }, grid: { display: false } },
-    y: { ticks: { color: '#9a8570', font: { size: 11 } }, grid: { color: 'rgba(44,24,16,0.06)' }, beginAtZero: true }
-  }
-}
+const maxAmount = computed(() => {
+  if (rankings.value.length === 0) return 1
+  const key = rankType.value === 'expense' ? 'expense' : 'saving'
+  return Math.max(...rankings.value.map(item => item[key]), 1)
+})
+
+const totalExpense = computed(() => store.monthExpenses.reduce((s, e) => s + e.amount, 0))
+const totalSaving = computed(() => store.monthExpenses.reduce((s, e) => s + (e.savingAmount || 0), 0))
 </script>
 
 <template>
   <div class="charts-view">
-    <h2 class="page-title">图表分析</h2>
+    <h2 class="page-title">排行榜</h2>
 
-    <div class="chart-card" v-if="store.monthExpenses.length > 0">
-      <h3>支出分类</h3>
-      <div class="chart-container">
-        <Pie :data="categoryChartData" :options="categoryChartOptions" />
+    <div class="toggle-row">
+      <button
+        class="toggle-btn"
+        :class="{ active: rankType === 'expense' }"
+        @click="rankType = 'expense'"
+      >支出排行</button>
+      <button
+        class="toggle-btn"
+        :class="{ active: rankType === 'saving' }"
+        @click="rankType = 'saving'"
+      >省钱排行</button>
+    </div>
+
+    <div class="summary-bar">
+      <div class="summary-item" v-if="rankType === 'expense'">
+        <span class="summary-label">本月总支出</span>
+        <span class="summary-value">¥{{ totalExpense.toFixed(2) }}</span>
+      </div>
+      <div class="summary-item" v-else>
+        <span class="summary-label">本月总省钱</span>
+        <span class="summary-value green">¥{{ totalSaving.toFixed(2) }}</span>
       </div>
     </div>
 
-    <div class="chart-card">
-      <h3>工作日 vs 休息日</h3>
-      <div class="chart-container">
-        <Bar :data="barChartData" :options="barChartOptions" />
+    <div v-if="rankings.length > 0" class="rank-list">
+      <div
+        v-for="(item, index) in rankings"
+        :key="item.category"
+        class="rank-item"
+        :style="{ animationDelay: index * 0.05 + 's' }"
+      >
+        <div class="rank-num" :class="{ top: index < 3 }">{{ index + 1 }}</div>
+        <div class="rank-icon" :style="{ background: categoryMap[item.category]?.bg || '#eee' }">
+          {{ categoryMap[item.category]?.icon || '💰' }}
+        </div>
+        <div class="rank-body">
+          <div class="rank-head">
+            <span class="rank-name">{{ categoryMap[item.category]?.name || item.category }}</span>
+            <span class="rank-amount">
+              ¥{{ (rankType === 'expense' ? item.expense : item.saving).toFixed(2) }}
+            </span>
+          </div>
+          <div class="rank-bar-track">
+            <div
+              class="rank-bar-fill"
+              :class="rankType"
+              :style="{ width: `${(rankType === 'expense' ? item.expense : item.saving) / maxAmount * 100}%` }"
+            ></div>
+          </div>
+          <div class="rank-meta">
+            <span>{{ item.count }}笔</span>
+            <span v-if="rankType === 'expense' && item.saving > 0" class="meta-saving">
+              省 ¥{{ item.saving.toFixed(2) }}
+            </span>
+            <span v-if="rankType === 'saving' && item.expense > 0" class="meta-expense">
+              支出 ¥{{ item.expense.toFixed(2) }}
+            </span>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="chart-card">
-      <h3>近6个月趋势</h3>
-      <div class="chart-container">
-        <Line :data="trendData" :options="trendOptions" />
-      </div>
-    </div>
-
-    <div v-if="store.monthExpenses.length === 0" class="empty">
-      <div class="empty-icon">📊</div>
+    <div v-else class="empty">
+      <div class="empty-icon">🏆</div>
       <p class="empty-text">暂无数据</p>
-      <p class="empty-hint">添加记账记录后查看图表分析</p>
+      <p class="empty-hint">添加记账记录后查看排行榜</p>
     </div>
   </div>
 </template>
@@ -141,28 +119,174 @@ const trendOptions = {
   font-family: 'Noto Serif SC', serif;
   font-size: 22px;
   font-weight: 700;
-  margin-bottom: 20px;
+  margin-bottom: 16px;
   color: var(--text-primary);
 }
 
-.chart-card {
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  padding: 18px;
-  margin-bottom: 14px;
-  box-shadow: var(--shadow-md);
-  animation: fadeInUp 0.4s ease both;
+.toggle-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
 }
 
-.chart-card h3 {
-  font-size: 14px;
+.toggle-btn {
+  flex: 1;
+  padding: 8px 16px;
+  border-radius: 14px;
+  font-size: 13px;
+  font-weight: 600;
   color: var(--text-secondary);
-  margin-bottom: 14px;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s ease;
+}
+
+.toggle-btn.active {
+  color: #fff;
+  background: var(--accent);
+  box-shadow: var(--shadow-float);
+}
+
+.summary-bar {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-sm);
+  animation: fadeInUp 0.3s ease both;
+}
+
+.summary-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.summary-label {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.summary-value {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.summary-value.green {
+  color: var(--green);
+}
+
+.rank-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.rank-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px;
+  background: var(--bg-card);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+  animation: fadeInUp 0.35s ease both;
+}
+
+.rank-num {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.rank-num.top {
+  color: #fff;
+  background: var(--accent);
+}
+
+.rank-icon {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.rank-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.rank-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.rank-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.rank-amount {
+  font-family: 'Noto Serif SC', serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.rank-bar-track {
+  height: 6px;
+  background: var(--bg-tertiary);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.rank-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.rank-bar-fill.expense {
+  background: var(--danger);
+}
+
+.rank-bar-fill.saving {
+  background: var(--green);
+}
+
+.rank-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.meta-saving {
+  color: var(--green);
   font-weight: 500;
 }
 
-.chart-container {
-  max-height: 240px;
+.meta-expense {
+  color: var(--danger);
+  font-weight: 500;
 }
 
 .empty {

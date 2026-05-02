@@ -1,7 +1,9 @@
 <script setup>
 import { computed } from 'vue'
 import { useExpenseStore } from '../stores/expense.js'
-import { categoryMap } from '../data/categories.js'
+import { getCategoryMap } from '../data/categories.js'
+
+const categoryMap = getCategoryMap()
 
 const store = useExpenseStore()
 
