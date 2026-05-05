@@ -1,16 +1,16 @@
 export const defaultCategories = [
-  { key: 'takeout', icon: '🥡', name: '外卖', bg: '#e8f0ea', color: '#3d7a50' },
-  { key: 'dining', icon: '🍜', name: '堂食', bg: '#e4ecf2', color: '#4a6e8a' },
-  { key: 'grocery', icon: '🛒', name: '买菜', bg: '#f0e8d4', color: '#b89030' },
-  { key: 'transport', icon: '🚇', name: '交通', bg: '#e4eef4', color: '#357ca0' },
-  { key: 'car', icon: '🚗', name: '养车', bg: '#f0e6dc', color: '#a06036' },
-  { key: 'telecom', icon: '📱', name: '通讯', bg: '#ece4f0', color: '#7a5a8a' },
-  { key: 'credit', icon: '💳', name: '还信用卡', bg: '#f0e4e4', color: '#b53a2a' },
-  { key: 'study', icon: '📚', name: '学习', bg: '#e0ece8', color: '#2d7a6a' },
-  { key: 'fun', icon: '🎮', name: '娱乐', bg: '#f0e8dc', color: '#b06a30' },
-  { key: 'badminton', icon: '🏸', name: '羽毛球', bg: '#e4f0e8', color: '#2d8a5a' },
-  { key: 'ai', icon: '🤖', name: 'AI', bg: '#e4e8f4', color: '#4a6aaa' },
-  { key: 'pet', icon: '🐾', name: '宠物', bg: '#f4ece4', color: '#8a6a4a' }
+  { key: 'takeout', icon: '🛍️', name: '外卖', bg: '#e9f6ee', color: '#28a463' },
+  { key: 'dining', icon: '🍜', name: '堂食', bg: '#eaf0ff', color: '#5d73ff' },
+  { key: 'grocery', icon: '🛒', name: '买菜', bg: '#fff4d8', color: '#ffb42e' },
+  { key: 'transport', icon: '🚇', name: '交通', bg: '#e8f5fb', color: '#2f91bd' },
+  { key: 'car', icon: '🚗', name: '养车', bg: '#fff0e5', color: '#dd7a3c' },
+  { key: 'telecom', icon: '📱', name: '通讯', bg: '#efe9ff', color: '#7358d9' },
+  { key: 'credit', icon: '💳', name: '还信用卡', bg: '#ffe9ed', color: '#ef334c' },
+  { key: 'study', icon: '📚', name: '学习', bg: '#e5f6f4', color: '#1aa5a5' },
+  { key: 'fun', icon: '🎮', name: '娱乐', bg: '#ffefe8', color: '#ff7b54' },
+  { key: 'badminton', icon: '🏸', name: '羽毛球', bg: '#edf8e9', color: '#48a84c' },
+  { key: 'ai', icon: '✨', name: 'AI', bg: '#edf0ff', color: '#5d73ff' },
+  { key: 'pet', icon: '🐾', name: '宠物', bg: '#fff0ea', color: '#a46a4d' }
 ]
 
 const CUSTOM_CATEGORIES_KEY = 'accountbook_custom_categories'
@@ -27,15 +27,15 @@ export function addCustomCategory(name) {
   const custom = getCustomCategories()
   const key = 'custom_' + Date.now()
   const colors = [
-    { bg: '#f0e8f4', color: '#8a5aaa' },
-    { bg: '#e4f0f0', color: '#3a8a8a' },
-    { bg: '#f4f0e4', color: '#8a7a3a' },
-    { bg: '#e8f4e4', color: '#4a8a3a' },
-    { bg: '#f4e4ec', color: '#aa5a7a' },
-    { bg: '#e4eaf4', color: '#3a5aaa' }
+    { bg: '#f1eaff', color: '#7358d9' },
+    { bg: '#e8f8f8', color: '#1aa5a5' },
+    { bg: '#fff5dc', color: '#c7901f' },
+    { bg: '#ecf8e8', color: '#48a84c' },
+    { bg: '#ffeaf2', color: '#d75986' },
+    { bg: '#eaf0ff', color: '#5d73ff' }
   ]
   const colorSet = colors[custom.length % colors.length]
-  const cat = { key, icon: '📌', name, ...colorSet }
+  const cat = { key, icon: '🏷️', name, ...colorSet }
   custom.push(cat)
   localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(custom))
   return cat

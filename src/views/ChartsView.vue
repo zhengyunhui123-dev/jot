@@ -18,12 +18,8 @@ const rankings = computed(() => {
     map[e.category].count++
   })
   const list = Object.values(map)
-  if (rankType.value === 'expense') {
-    list.sort((a, b) => b.expense - a.expense)
-  } else {
-    list.sort((a, b) => b.saving - a.saving)
-  }
-  return list
+  const key = rankType.value === 'expense' ? 'expense' : 'saving'
+  return list.sort((a, b) => b[key] - a[key])
 })
 
 const maxAmount = computed(() => {
@@ -38,229 +34,190 @@ const totalSaving = computed(() => store.monthExpenses.reduce((s, e) => s + (e.s
 
 <template>
   <div class="charts-view">
-    <h2 class="page-title">排行榜</h2>
+    <header class="page-heading">
+      <h2 class="page-title">图表</h2>
+    </header>
 
-    <div class="toggle-row">
-      <button
-        class="toggle-btn"
-        :class="{ active: rankType === 'expense' }"
-        @click="rankType = 'expense'"
-      >支出排行</button>
-      <button
-        class="toggle-btn"
-        :class="{ active: rankType === 'saving' }"
-        @click="rankType = 'saving'"
-      >省钱排行</button>
+    <div class="toggle-row glass-card">
+      <button class="toggle-btn" :class="{ active: rankType === 'expense' }" @click="rankType = 'expense'">支出排行</button>
+      <button class="toggle-btn" :class="{ active: rankType === 'saving' }" @click="rankType = 'saving'">省钱排行</button>
     </div>
 
-    <div class="summary-bar">
-      <div class="summary-item" v-if="rankType === 'expense'">
-        <span class="summary-label">本月总支出</span>
-        <span class="summary-value">¥{{ totalExpense.toFixed(2) }}</span>
-      </div>
-      <div class="summary-item" v-else>
-        <span class="summary-label">本月总省钱</span>
-        <span class="summary-value green">¥{{ totalSaving.toFixed(2) }}</span>
-      </div>
-    </div>
+    <section class="summary-panel glass-card">
+      <span>{{ rankType === 'expense' ? '本月总支出' : '本月总省钱' }}</span>
+      <strong :class="{ green: rankType === 'saving' }">¥{{ (rankType === 'expense' ? totalExpense : totalSaving).toFixed(2) }}</strong>
+    </section>
 
-    <div v-if="rankings.length > 0" class="rank-list">
-      <div
-        v-for="(item, index) in rankings"
-        :key="item.category"
-        class="rank-item"
-        :style="{ animationDelay: index * 0.05 + 's' }"
-      >
+    <div v-if="rankings.length > 0" class="rank-list glass-card">
+      <div v-for="(item, index) in rankings" :key="item.category" class="rank-item" :style="{ animationDelay: index * 0.05 + 's' }">
         <div class="rank-num" :class="{ top: index < 3 }">{{ index + 1 }}</div>
-        <div class="rank-icon" :style="{ background: categoryMap[item.category]?.bg || '#eee' }">
-          {{ categoryMap[item.category]?.icon || '💰' }}
+        <div class="rank-icon" :style="{ background: categoryMap[item.category]?.bg || '#eef2fb', color: categoryMap[item.category]?.color || 'var(--accent)' }">
+          {{ categoryMap[item.category]?.icon || '¥' }}
         </div>
         <div class="rank-body">
           <div class="rank-head">
             <span class="rank-name">{{ categoryMap[item.category]?.name || item.category }}</span>
-            <span class="rank-amount">
-              ¥{{ (rankType === 'expense' ? item.expense : item.saving).toFixed(2) }}
-            </span>
+            <span class="rank-amount">¥{{ (rankType === 'expense' ? item.expense : item.saving).toFixed(2) }}</span>
           </div>
           <div class="rank-bar-track">
-            <div
-              class="rank-bar-fill"
-              :class="rankType"
-              :style="{ width: `${(rankType === 'expense' ? item.expense : item.saving) / maxAmount * 100}%` }"
-            ></div>
+            <div class="rank-bar-fill" :class="rankType" :style="{ width: `${(rankType === 'expense' ? item.expense : item.saving) / maxAmount * 100}%` }"></div>
           </div>
           <div class="rank-meta">
             <span>{{ item.count }}笔</span>
-            <span v-if="rankType === 'expense' && item.saving > 0" class="meta-saving">
-              省 ¥{{ item.saving.toFixed(2) }}
-            </span>
-            <span v-if="rankType === 'saving' && item.expense > 0" class="meta-expense">
-              支出 ¥{{ item.expense.toFixed(2) }}
-            </span>
+            <span v-if="rankType === 'expense' && item.saving > 0" class="meta-saving">省 ¥{{ item.saving.toFixed(2) }}</span>
+            <span v-if="rankType === 'saving' && item.expense > 0" class="meta-expense">支出 ¥{{ item.expense.toFixed(2) }}</span>
           </div>
         </div>
       </div>
     </div>
 
-    <div v-else class="empty">
-      <div class="empty-icon">🏆</div>
+    <div v-else class="empty glass-card">
+      <div class="empty-icon">⌁</div>
       <p class="empty-text">暂无数据</p>
-      <p class="empty-hint">添加记账记录后查看排行榜</p>
+      <p class="empty-hint">添加记账记录后查看排行</p>
     </div>
   </div>
 </template>
 
 <style scoped>
 .charts-view {
-  padding: 20px 16px;
+  min-height: 100%;
+  padding: 0 22px 24px;
 }
 
-.page-title {
-  font-family: 'Noto Serif SC', serif;
-  font-size: 22px;
-  font-weight: 700;
-  margin-bottom: 16px;
-  color: var(--text-primary);
+.page-heading {
+  padding-left: 2px;
+  padding-right: 2px;
 }
 
 .toggle-row {
-  display: flex;
-  gap: 10px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 6px;
+  border-radius: 20px;
   margin-bottom: 16px;
 }
 
 .toggle-btn {
-  flex: 1;
-  padding: 8px 16px;
-  border-radius: 14px;
-  font-size: 13px;
-  font-weight: 600;
+  padding: 11px 14px;
+  border-radius: 15px;
+  font-size: 14px;
+  font-weight: 800;
   color: var(--text-secondary);
-  background: var(--bg-card);
-  box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
 }
 
 .toggle-btn.active {
   color: #fff;
-  background: var(--accent);
-  box-shadow: var(--shadow-float);
+  background: linear-gradient(135deg, #7791ff, #4f5df6);
+  box-shadow: 0 10px 20px rgba(93, 115, 255, 0.24);
 }
 
-.summary-bar {
-  background: var(--bg-card);
-  border-radius: var(--radius-lg);
-  padding: 14px 16px;
-  margin-bottom: 16px;
-  box-shadow: var(--shadow-sm);
-  animation: fadeInUp 0.3s ease both;
-}
-
-.summary-item {
+.summary-panel {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 18px 20px;
+  margin-bottom: 16px;
+  border-radius: var(--radius-lg);
+  animation: fadeInUp 0.3s ease both;
 }
 
-.summary-label {
-  font-size: 13px;
+.summary-panel span {
   color: var(--text-secondary);
-}
-
-.summary-value {
-  font-family: 'Noto Serif SC', serif;
-  font-size: 22px;
+  font-size: 14px;
   font-weight: 700;
-  color: var(--text-primary);
 }
 
-.summary-value.green {
+.summary-panel strong {
+  color: var(--text-primary);
+  font-size: 26px;
+  font-weight: 800;
+}
+
+.summary-panel strong.green {
   color: var(--green);
 }
 
 .rank-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+  overflow: hidden;
+  border-radius: var(--radius-xl);
 }
 
 .rank-item {
-  display: flex;
+  display: grid;
+  grid-template-columns: 30px 46px 1fr;
   align-items: center;
   gap: 12px;
-  padding: 14px;
-  background: var(--bg-card);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
+  padding: 16px 18px;
   animation: fadeInUp 0.35s ease both;
 }
 
+.rank-item + .rank-item {
+  border-top: 1px solid rgba(137, 151, 196, 0.16);
+}
+
 .rank-num {
-  width: 24px;
-  height: 24px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 700;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
   color: var(--text-muted);
-  background: var(--bg-tertiary);
-  border-radius: 8px;
-  flex-shrink: 0;
+  background: #eef2fb;
+  border-radius: 11px;
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .rank-num.top {
   color: #fff;
-  background: var(--accent);
+  background: linear-gradient(135deg, #7d92ff, #4f5df6);
 }
 
 .rank-icon {
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  border-radius: 12px;
-  flex-shrink: 0;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 16px;
+  font-size: 22px;
 }
 
 .rank-body {
-  flex: 1;
   min-width: 0;
 }
 
 .rank-head {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
+  gap: 12px;
+  margin-bottom: 8px;
 }
 
 .rank-name {
-  font-size: 14px;
-  font-weight: 600;
   color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 800;
 }
 
 .rank-amount {
-  font-family: 'Noto Serif SC', serif;
-  font-size: 15px;
-  font-weight: 700;
   color: var(--text-primary);
+  font-size: 15px;
+  font-weight: 800;
+  white-space: nowrap;
 }
 
 .rank-bar-track {
-  height: 6px;
-  background: var(--bg-tertiary);
+  height: 7px;
+  background: #eef2fb;
   border-radius: 999px;
   overflow: hidden;
-  margin-bottom: 6px;
 }
 
 .rank-bar-fill {
   height: 100%;
-  border-radius: 999px;
+  border-radius: inherit;
   transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -275,39 +232,41 @@ const totalSaving = computed(() => store.monthExpenses.reduce((s, e) => s + (e.s
 .rank-meta {
   display: flex;
   gap: 10px;
-  font-size: 11px;
+  margin-top: 6px;
   color: var(--text-muted);
+  font-size: 12px;
+  font-weight: 700;
 }
 
 .meta-saving {
   color: var(--green);
-  font-weight: 500;
 }
 
 .meta-expense {
   color: var(--danger);
-  font-weight: 500;
 }
 
 .empty {
   text-align: center;
-  padding: 60px 0;
+  padding: 54px 20px;
+  border-radius: var(--radius-xl);
 }
 
 .empty-icon {
-  font-size: 40px;
-  margin-bottom: 12px;
-  opacity: 0.6;
+  color: var(--accent);
+  font-size: 38px;
+  margin-bottom: 10px;
 }
 
 .empty-text {
-  color: var(--text-secondary);
-  font-size: 15px;
-  margin-bottom: 4px;
+  color: var(--text-primary);
+  font-size: 16px;
+  font-weight: 800;
 }
 
 .empty-hint {
-  font-size: 12px;
   color: var(--text-muted);
+  font-size: 13px;
+  font-weight: 600;
 }
 </style>
