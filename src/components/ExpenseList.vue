@@ -13,8 +13,39 @@ const paymentLabel = {
   cash: '现金'
 }
 
+let longPressTimer = null
+let longPressTriggered = false
+
 function editExpense(id) {
   router.push('/edit/' + id)
+}
+
+function startLongPress(item) {
+  clearLongPress()
+  longPressTriggered = false
+  longPressTimer = window.setTimeout(async () => {
+    longPressTriggered = true
+    const categoryName = categoryMap[item.category]?.name || item.category
+    const confirmed = confirm(`确定删除这笔「${categoryName}」记录吗？\n\n删除后无法恢复。`)
+    if (confirmed) {
+      await store.deleteExpense(item.id)
+    }
+  }, 650)
+}
+
+function clearLongPress() {
+  if (longPressTimer) {
+    window.clearTimeout(longPressTimer)
+    longPressTimer = null
+  }
+}
+
+function handleItemClick(id) {
+  if (longPressTriggered) {
+    longPressTriggered = false
+    return
+  }
+  editExpense(id)
 }
 </script>
 
@@ -44,7 +75,11 @@ function editExpense(id) {
           :key="item.id"
           class="expense-item"
           :style="{ animationDelay: (gi * 0.05 + ii * 0.03) + 's' }"
-          @click="editExpense(item.id)"
+          @click="handleItemClick(item.id)"
+          @pointerdown="startLongPress(item)"
+          @pointerup="clearLongPress"
+          @pointerleave="clearLongPress"
+          @pointercancel="clearLongPress"
         >
           <div class="item-icon" :style="{ background: categoryMap[item.category]?.bg || '#eef2fb', color: categoryMap[item.category]?.color || 'var(--accent)' }">
             {{ categoryMap[item.category]?.icon || '¥' }}

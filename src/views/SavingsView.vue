@@ -6,7 +6,8 @@ import { getCategoryMap } from '../data/categories.js'
 const categoryMap = getCategoryMap()
 const store = useExpenseStore()
 
-const maxTotal = computed(() => Math.max(...store.categoryStats.map(item => item.expense + item.saving), 1))
+const savingStats = computed(() => store.categoryStats.filter(item => item.saving > 0))
+const maxTotal = computed(() => Math.max(...savingStats.value.map(item => item.expense + item.saving), 1))
 </script>
 
 <template>
@@ -20,8 +21,8 @@ const maxTotal = computed(() => Math.max(...store.categoryStats.map(item => item
       <strong>¥{{ store.totalSaving.toFixed(2) }}</strong>
     </section>
 
-    <div v-if="store.categoryStats.length > 0" class="stat-list glass-card">
-      <div v-for="item in store.categoryStats" :key="item.category" class="stat-item">
+    <div v-if="savingStats.length > 0" class="stat-list glass-card">
+      <div v-for="item in savingStats" :key="item.category" class="stat-item">
         <div class="stat-icon" :style="{ background: categoryMap[item.category]?.bg || '#eef2fb', color: categoryMap[item.category]?.color || 'var(--accent)' }">
           {{ categoryMap[item.category]?.icon || '¥' }}
         </div>
@@ -45,8 +46,8 @@ const maxTotal = computed(() => Math.max(...store.categoryStats.map(item => item
 
     <div v-else class="empty glass-card">
       <div class="empty-icon">¥</div>
-      <p class="empty-text">还没有本月记录</p>
-      <p class="empty-hint">记录支出或省钱后，这里会按类型汇总</p>
+      <p class="empty-text">还没有省钱记录</p>
+      <p class="empty-hint">记录省钱金额后，这里会按类型汇总</p>
     </div>
   </div>
 </template>

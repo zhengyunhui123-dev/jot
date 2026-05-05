@@ -80,7 +80,7 @@ async function importData() {
 }
 
 async function clearAll() {
-  if (confirm('确定清除所有记账数据吗？此操作不可恢复。')) {
+  if (confirm('确定要清除所有记账数据吗？\n\n清除后无法恢复，建议先导出备份。')) {
     await db.expenses.clear()
     store.expenses = []
     await calcStorageSize()

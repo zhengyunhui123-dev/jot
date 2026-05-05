@@ -73,8 +73,10 @@ function formatAmount(amount) {
             :class="{ today: cell.currentMonth && isToday(cell.date), 'other-month': !cell.currentMonth }"
           >
             <span class="day-num">{{ cell.day }}</span>
-            <span v-if="cell.currentMonth && getCellTag(cell)" class="day-tag" :class="getCellTag(cell).type">{{ getCellTag(cell).text }}</span>
-            <span v-else-if="cell.currentMonth && store.dailyTotals[cell.date]" class="day-amount">{{ formatAmount(store.dailyTotals[cell.date]) }}</span>
+            <span v-if="cell.currentMonth && (getCellTag(cell) || store.dailyTotals[cell.date])" class="day-meta">
+              <span v-if="getCellTag(cell)" class="day-tag" :class="getCellTag(cell).type">{{ getCellTag(cell).text }}</span>
+              <span v-if="store.dailyTotals[cell.date]" class="day-amount">{{ formatAmount(store.dailyTotals[cell.date]) }}</span>
+            </span>
           </div>
         </template>
       </div>
@@ -113,11 +115,12 @@ function formatAmount(amount) {
 }
 
 .day-cell {
-  aspect-ratio: 1 / 1.12;
+  aspect-ratio: 1 / 1.2;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 3px;
   border-radius: 14px;
 }
 
@@ -142,9 +145,17 @@ function formatAmount(amount) {
   color: #fff;
 }
 
+.day-meta {
+  min-height: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 2px;
+}
+
 .day-tag,
 .day-amount {
-  margin-top: 1px;
   font-size: 9px;
   font-weight: 800;
   line-height: 1;
@@ -165,5 +176,13 @@ function formatAmount(amount) {
 
 .day-amount {
   color: var(--green);
+  max-width: 34px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.today .day-amount {
+  color: #fff;
 }
 </style>

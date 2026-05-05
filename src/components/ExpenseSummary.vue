@@ -10,12 +10,6 @@ const savingCompareText = computed(() => {
   if (diff < 0) return `比上月少省 ¥${Math.abs(diff).toFixed(2)} ↓`
   return '和上月省得一样多'
 })
-
-const expensePercent = computed(() => (store.totalExpense > 0 ? 100 : 0))
-const ringStyle = computed(() => ({
-  '--main-color': store.totalExpense > 0 ? '#8a80f4' : '#8a80f4',
-  '--green-stop': store.totalExpense > 0 ? '14%' : '0%'
-}))
 </script>
 
 <template>
@@ -43,10 +37,16 @@ const ringStyle = computed(() => ({
       <strong class="expense-amount">¥{{ store.totalExpense.toFixed(2) }}</strong>
     </div>
 
-    <div class="ring" :style="ringStyle">
-      <div class="ring-center">
-        <span>支出占比</span>
-        <strong>{{ expensePercent }}%</strong>
+    <div class="day-breakdown">
+      <div class="day-row">
+        <span class="day-dot work"></span>
+        <span class="day-label">工作日</span>
+        <strong>¥{{ store.workdayExpense.toFixed(2) }}</strong>
+      </div>
+      <div class="day-row">
+        <span class="day-dot rest"></span>
+        <span class="day-label">节假日</span>
+        <strong>¥{{ store.restdayExpense.toFixed(2) }}</strong>
       </div>
     </div>
   </section>
@@ -55,12 +55,13 @@ const ringStyle = computed(() => ({
 <style scoped>
 .summary-card {
   display: grid;
-  grid-template-columns: minmax(0, 1.1fr) 1px minmax(0, 0.92fr) 82px;
+  grid-template-columns: minmax(0, 1.3fr) 1px minmax(96px, 0.82fr) minmax(76px, 0.56fr);
   align-items: center;
-  gap: 15px;
+  column-gap: 18px;
+  row-gap: 12px;
   min-height: 122px;
   margin: 29px 22px 27px;
-  padding: 21px 17px 20px;
+  padding: 21px 18px 20px;
   border-radius: 30px;
   animation: fadeInUp 0.4s ease both;
 }
@@ -112,11 +113,12 @@ const ringStyle = computed(() => ({
 
 small {
   display: block;
+  max-width: 118px;
   color: #9aa4c1;
   font-size: 12px;
   font-weight: 700;
   margin-top: 5px;
-  white-space: nowrap;
+  line-height: 1.25;
 }
 
 .summary-divider {
@@ -127,55 +129,70 @@ small {
 
 .expense-block {
   min-width: 0;
+  padding-left: 2px;
 }
 
-.ring {
-  width: 80px;
-  height: 80px;
+.day-breakdown {
   display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background:
-    conic-gradient(from 0deg, var(--green) 0 var(--green-stop), var(--main-color) var(--green-stop) 100%);
-  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.7);
+  gap: 13px;
+  min-width: 0;
 }
 
-.ring-center {
-  width: 56px;
-  height: 56px;
-  display: flex;
-  flex-direction: column;
+.day-row {
+  display: grid;
+  grid-template-columns: 8px 1fr;
+  column-gap: 6px;
+  row-gap: 4px;
   align-items: center;
-  justify-content: center;
+  padding: 1px 0;
+}
+
+.day-dot {
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.96);
 }
 
-.ring-center span {
-  font-size: 11px;
+.day-dot.work {
+  background: var(--green);
+}
+
+.day-dot.rest {
+  background: #8a80f4;
+}
+
+.day-label {
   color: #8a94ba;
-  font-weight: 700;
+  font-size: 11.5px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
-.ring-center strong {
-  font-size: 15px;
+.day-row strong {
+  grid-column: 2;
   color: var(--text-primary);
-  line-height: 1.25;
+  font-size: 12px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
 }
 
 @media (max-width: 390px) {
   .summary-card {
     grid-template-columns: 1fr 1px 0.8fr;
-    gap: 14px;
-  }
-
-  .ring {
-    display: none;
+    row-gap: 14px;
   }
 
   .saving-amount,
   .expense-amount {
     font-size: 23px;
+  }
+
+  .day-breakdown {
+    grid-column: 1 / -1;
+    grid-template-columns: repeat(2, 1fr);
+    padding-top: 2px;
   }
 }
 </style>

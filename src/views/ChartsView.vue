@@ -19,7 +19,9 @@ const rankings = computed(() => {
   })
   const list = Object.values(map)
   const key = rankType.value === 'expense' ? 'expense' : 'saving'
-  return list.sort((a, b) => b[key] - a[key])
+  return list
+    .filter(item => rankType.value === 'expense' ? item.expense > 0 : item.saving > 0)
+    .sort((a, b) => b[key] - a[key])
 })
 
 const maxAmount = computed(() => {
