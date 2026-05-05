@@ -248,4 +248,56 @@ function handleItemClick(id) {
   font-size: 14px;
   font-weight: 700;
 }
+
+@media (max-width: 430px) {
+  .expense-list {
+    padding: 0 22px;
+  }
+
+  .expense-item {
+    grid-template-columns: 48px minmax(0, 1fr) auto 16px;
+    gap: 10px;
+    padding: 16px 14px;
+  }
+
+  .item-icon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .item-meta {
+    display: -webkit-box;
+    overflow: hidden;
+    line-height: 1.25;
+    white-space: normal;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  .item-amount {
+    justify-self: end;
+    font-size: 19px;
+  }
+
+  .chevron {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+@media (max-width: 360px) {
+  .expense-item {
+    grid-template-columns: 44px minmax(0, 1fr) auto;
+  }
+
+  .item-icon {
+    width: 44px;
+    height: 44px;
+    font-size: 22px;
+  }
+
+  .chevron {
+    display: none;
+  }
+}
 </style>

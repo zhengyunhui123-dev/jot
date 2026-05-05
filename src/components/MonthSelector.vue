@@ -30,12 +30,13 @@ const store = useExpenseStore()
 <style scoped>
 .month-selector {
   display: grid;
-  grid-template-columns: 54px 128px 54px;
+  grid-template-columns: 54px minmax(128px, 1fr) 54px;
   align-items: center;
   justify-content: center;
-  gap: 46px;
-  width: 100%;
-  transform: translateX(-18px);
+  column-gap: clamp(18px, 8vw, 46px);
+  width: calc(100% - 72px);
+  max-width: 340px;
+  margin-right: auto;
 }
 
 .month-display {
@@ -83,5 +84,22 @@ const store = useExpenseStore()
 .arrow:active {
   transform: scale(0.94);
   background: #fff;
+}
+
+.arrow:last-child {
+  justify-self: end;
+}
+
+@media (max-width: 430px) {
+  .month-selector {
+    width: calc(100% - 66px);
+    grid-template-columns: 50px minmax(108px, 1fr) 50px;
+    column-gap: clamp(10px, 4vw, 22px);
+  }
+
+  .arrow {
+    width: 50px;
+    height: 50px;
+  }
 }
 </style>
