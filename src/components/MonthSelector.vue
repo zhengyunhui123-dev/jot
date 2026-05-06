@@ -12,7 +12,8 @@ const store = useExpenseStore()
       </svg>
     </button>
     <div class="month-display">
-      <span class="year">{{ store.currentYear }}年
+      <span class="year">
+        {{ store.currentYear }}年
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
           <path d="M4 6L8 10L12 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
@@ -29,48 +30,46 @@ const store = useExpenseStore()
 
 <style scoped>
 .month-selector {
-  display: grid;
-  grid-template-columns: 54px minmax(128px, 1fr) 54px;
-  align-items: center;
-  justify-content: center;
-  column-gap: clamp(18px, 8vw, 46px);
-  width: calc(100% - 72px);
-  max-width: 340px;
-  margin-right: auto;
+  position: relative;
+  width: 100%;
+  height: 116px;
 }
 
 .month-display {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 128px;
+  min-width: 132px;
 }
 
 .year {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   font-size: 14px;
   color: var(--text-primary);
-  font-weight: 700;
-}
-
-.year svg {
-  color: var(--text-primary);
+  font-weight: 800;
+  line-height: 1;
 }
 
 .month {
-  font-size: 43px;
-  font-weight: 800;
+  margin-top: 10px;
   color: var(--text-primary);
-  line-height: 1.05;
-  margin-top: 4px;
+  font-size: 52px;
+  font-weight: 800;
+  line-height: 1;
   letter-spacing: 0;
 }
 
 .arrow {
-  width: 54px;
-  height: 54px;
+  position: absolute;
+  top: 42px;
+  width: 50px;
+  height: 50px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -81,25 +80,30 @@ const store = useExpenseStore()
   transition: transform 0.18s ease, background 0.18s ease;
 }
 
+.arrow:first-child {
+  left: 34px;
+}
+
 .arrow:active {
   transform: scale(0.94);
   background: #fff;
 }
 
 .arrow:last-child {
-  justify-self: end;
+  right: 68px;
 }
 
 @media (max-width: 430px) {
   .month-selector {
-    width: calc(100% - 66px);
-    grid-template-columns: 50px minmax(108px, 1fr) 50px;
-    column-gap: clamp(10px, 4vw, 22px);
+    height: 116px;
   }
 
-  .arrow {
-    width: 50px;
-    height: 50px;
+  .arrow:first-child {
+    left: 31px;
+  }
+
+  .arrow:last-child {
+    right: 64px;
   }
 }
 </style>

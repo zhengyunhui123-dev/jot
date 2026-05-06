@@ -1,16 +1,16 @@
 export const defaultCategories = [
-  { key: 'takeout', icon: '🛍️', name: '外卖', bg: '#e9f6ee', color: '#28a463' },
-  { key: 'dining', icon: '🍜', name: '堂食', bg: '#eaf0ff', color: '#5d73ff' },
-  { key: 'grocery', icon: '🛒', name: '买菜', bg: '#fff4d8', color: '#ffb42e' },
-  { key: 'transport', icon: '🚇', name: '交通', bg: '#e8f5fb', color: '#2f91bd' },
-  { key: 'car', icon: '🚗', name: '养车', bg: '#fff0e5', color: '#dd7a3c' },
-  { key: 'telecom', icon: '📱', name: '通讯', bg: '#efe9ff', color: '#7358d9' },
-  { key: 'credit', icon: '💳', name: '还信用卡', bg: '#ffe9ed', color: '#ef334c' },
-  { key: 'study', icon: '📚', name: '学习', bg: '#e5f6f4', color: '#1aa5a5' },
-  { key: 'fun', icon: '🎮', name: '娱乐', bg: '#ffefe8', color: '#ff7b54' },
-  { key: 'badminton', icon: '🏸', name: '羽毛球', bg: '#edf8e9', color: '#48a84c' },
-  { key: 'ai', icon: '✨', name: 'AI', bg: '#edf0ff', color: '#5d73ff' },
-  { key: 'pet', icon: '🐾', name: '宠物', bg: '#fff0ea', color: '#a46a4d' }
+  { key: 'takeout', icon: '🛍️', name: '外卖', bg: 'linear-gradient(135deg, #e4f5ea, #f1faf4)', color: '#28a463' },
+  { key: 'dining', icon: '🍜', name: '堂食', bg: 'linear-gradient(135deg, #eef1ff, #f8f9ff)', color: '#5d73ff' },
+  { key: 'grocery', icon: '🛒', name: '买菜', bg: 'linear-gradient(135deg, #fff4d5, #fff9e8)', color: '#ffb42e' },
+  { key: 'transport', icon: '🚃', name: '交通', bg: 'linear-gradient(135deg, #eaf8fc, #f5fbfe)', color: '#2f91bd' },
+  { key: 'car', icon: '🚙', name: '养车', bg: 'linear-gradient(135deg, #fff0e7, #fff8f2)', color: '#dd7a3c' },
+  { key: 'telecom', icon: '', name: '通讯', bg: 'linear-gradient(135deg, #efe5ff, #f8f1ff)', color: '#7358d9', iconType: 'telecom' },
+  { key: 'credit', icon: '💳', name: '还信用卡', bg: 'linear-gradient(135deg, #fbe9ec, #fff5f7)', color: '#ef334c' },
+  { key: 'study', icon: '📚', name: '学习', bg: 'linear-gradient(135deg, #e8f5f1, #f5fbf9)', color: '#1aa5a5' },
+  { key: 'fun', icon: '🎮', name: '娱乐', bg: 'linear-gradient(135deg, #fff0e9, #fff8f4)', color: '#ff7b54' },
+  { key: 'badminton', icon: '🏸', name: '羽毛球', bg: 'linear-gradient(135deg, #edf7e8, #f8fcf3)', color: '#48a84c' },
+  { key: 'ai', icon: '✨', name: 'AI', bg: 'linear-gradient(135deg, #eef1ff, #f9faff)', color: '#5d73ff' },
+  { key: 'pet', icon: '🐾', name: '宠物', bg: 'linear-gradient(135deg, #fff0e9, #fff8f4)', color: '#a46a4d' }
 ]
 
 const CUSTOM_CATEGORIES_KEY = 'accountbook_custom_categories'
@@ -27,12 +27,12 @@ export function addCustomCategory(name) {
   const custom = getCustomCategories()
   const key = 'custom_' + Date.now()
   const colors = [
-    { bg: '#f1eaff', color: '#7358d9' },
-    { bg: '#e8f8f8', color: '#1aa5a5' },
-    { bg: '#fff5dc', color: '#c7901f' },
-    { bg: '#ecf8e8', color: '#48a84c' },
-    { bg: '#ffeaf2', color: '#d75986' },
-    { bg: '#eaf0ff', color: '#5d73ff' }
+    { bg: 'linear-gradient(135deg, #f1eaff, #fbf8ff)', color: '#7358d9' },
+    { bg: 'linear-gradient(135deg, #e8f8f8, #f7ffff)', color: '#1aa5a5' },
+    { bg: 'linear-gradient(135deg, #fff5dc, #fffaf0)', color: '#c7901f' },
+    { bg: 'linear-gradient(135deg, #ecf8e8, #f8fff6)', color: '#48a84c' },
+    { bg: 'linear-gradient(135deg, #ffeaf2, #fff7fb)', color: '#d75986' },
+    { bg: 'linear-gradient(135deg, #eaf0ff, #f8faff)', color: '#5d73ff' }
   ]
   const colorSet = colors[custom.length % colors.length]
   const cat = { key, icon: '🏷️', name, ...colorSet }

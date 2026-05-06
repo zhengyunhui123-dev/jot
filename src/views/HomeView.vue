@@ -41,18 +41,18 @@ const showCalendar = ref(false)
 }
 
 .home-hero {
-  padding: 38px 22px 8px;
+  padding: 39px 22px 4px;
 }
 
 .top-bar {
   position: relative;
-  min-height: 116px;
+  min-height: 124px;
 }
 
 .view-toggle {
   position: absolute;
   right: 0;
-  top: 10px;
+  top: 42px;
   width: 58px;
   height: 58px;
   display: flex;
