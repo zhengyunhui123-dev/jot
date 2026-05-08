@@ -58,10 +58,10 @@ const savingCompareText = computed(() => {
   grid-template-columns: minmax(0, 1.42fr) 1px minmax(86px, 0.82fr) minmax(72px, 0.58fr);
   align-items: center;
   column-gap: 16px;
-  min-height: 127px;
-  margin: 23px 22px 31px;
-  padding: 24px 20px 24px 18px;
-  border-radius: 34px;
+  min-height: 118px;
+  margin: 10px 22px 27px;
+  padding: 20px 20px 20px 18px;
+  border-radius: 30px;
   animation: fadeInUp 0.4s ease both;
 }
 
@@ -187,9 +187,9 @@ small {
     grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.86fr);
     column-gap: 16px;
     row-gap: 16px;
-    min-height: 150px;
-    margin: 22px 22px 31px;
-    padding: 22px 18px 18px;
+    min-height: 138px;
+    margin: 8px 22px 27px;
+    padding: 19px 18px 16px;
   }
 
   .saving-block {
@@ -197,8 +197,8 @@ small {
   }
 
   .saving-icon {
-    width: 46px;
-    height: 46px;
+    width: 42px;
+    height: 42px;
     border-radius: 16px;
   }
 
@@ -208,11 +208,11 @@ small {
   }
 
   .saving-amount {
-    font-size: 27px;
+    font-size: 26px;
   }
 
   .expense-amount {
-    font-size: 30px;
+    font-size: 29px;
   }
 
   small {
@@ -233,7 +233,7 @@ small {
     grid-column: 1 / -1;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
-    padding-top: 12px;
+    padding-top: 10px;
     border-top: 1px solid rgba(137, 151, 196, 0.14);
   }
 
@@ -249,7 +249,9 @@ small {
 @media (max-width: 360px) {
   .summary-card {
     grid-template-columns: minmax(0, 1fr) minmax(78px, auto);
-    row-gap: 16px;
+    row-gap: 14px;
+    margin-left: 18px;
+    margin-right: 18px;
   }
 
   .summary-divider {

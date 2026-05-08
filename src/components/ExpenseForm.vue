@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useExpenseStore } from '../stores/expense.js'
 import AmountKeypad from './AmountKeypad.vue'
 import { getAllCategories, addCustomCategory } from '../data/categories.js'
+import { getLocalDateString } from '../utils/calendar.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -125,7 +126,7 @@ async function save() {
   }
   localStorage.setItem('lastPaymentMethod', paymentMethod.value)
 
-  const today = new Date().toISOString().slice(0, 10)
+  const today = getLocalDateString()
   const data = {
     category: selectedCategory.value,
     amount: num,

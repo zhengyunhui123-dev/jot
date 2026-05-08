@@ -2,6 +2,7 @@ export const defaultCategories = [
   { key: 'takeout', icon: '🛍️', name: '外卖', bg: 'linear-gradient(135deg, #e4f5ea, #f1faf4)', color: '#28a463' },
   { key: 'dining', icon: '🍜', name: '堂食', bg: 'linear-gradient(135deg, #eef1ff, #f8f9ff)', color: '#5d73ff' },
   { key: 'grocery', icon: '🛒', name: '买菜', bg: 'linear-gradient(135deg, #fff4d5, #fff9e8)', color: '#ffb42e' },
+  { key: 'retail', icon: '🏬', name: '零售', bg: 'linear-gradient(135deg, #eaf0ff, #f8faff)', color: '#5d73ff' },
   { key: 'transport', icon: '🚃', name: '交通', bg: 'linear-gradient(135deg, #eaf8fc, #f5fbfe)', color: '#2f91bd' },
   { key: 'car', icon: '🚙', name: '养车', bg: 'linear-gradient(135deg, #fff0e7, #fff8f2)', color: '#dd7a3c' },
   { key: 'telecom', icon: '', name: '通讯', bg: 'linear-gradient(135deg, #efe5ff, #f8f1ff)', color: '#7358d9', iconType: 'telecom' },
@@ -14,6 +15,8 @@ export const defaultCategories = [
 ]
 
 const CUSTOM_CATEGORIES_KEY = 'accountbook_custom_categories'
+const RETAIL_CATEGORY_KEY = 'retail'
+const RETAIL_CATEGORY_NAME = '零售'
 
 export function getCustomCategories() {
   try {
@@ -24,7 +27,14 @@ export function getCustomCategories() {
 }
 
 export function addCustomCategory(name) {
+  const normalizedName = name.trim()
+  const existingDefault = defaultCategories.find(cat => cat.name === normalizedName)
+  if (existingDefault) return existingDefault
+
   const custom = getCustomCategories()
+  const existingCustom = custom.find(cat => cat.name === normalizedName)
+  if (existingCustom) return existingCustom
+
   const key = 'custom_' + Date.now()
   const colors = [
     { bg: 'linear-gradient(135deg, #f1eaff, #fbf8ff)', color: '#7358d9' },
@@ -35,14 +45,29 @@ export function addCustomCategory(name) {
     { bg: 'linear-gradient(135deg, #eaf0ff, #f8faff)', color: '#5d73ff' }
   ]
   const colorSet = colors[custom.length % colors.length]
-  const cat = { key, icon: '🏷️', name, ...colorSet }
+  const cat = { key, icon: '🏷️', name: normalizedName, ...colorSet }
   custom.push(cat)
   localStorage.setItem(CUSTOM_CATEGORIES_KEY, JSON.stringify(custom))
   return cat
 }
 
+export function getRetailAliasKeys() {
+  return getCustomCategories()
+    .filter(cat => cat.name === RETAIL_CATEGORY_NAME)
+    .map(cat => cat.key)
+}
+
+export function getCanonicalCategoryKey(key) {
+  if (key === RETAIL_CATEGORY_KEY) return key
+  return getRetailAliasKeys().includes(key) ? RETAIL_CATEGORY_KEY : key
+}
+
 export function getAllCategories() {
-  return [...defaultCategories, ...getCustomCategories()]
+  const retailAliases = new Set(getRetailAliasKeys())
+  return [
+    ...defaultCategories,
+    ...getCustomCategories().filter(cat => !retailAliases.has(cat.key))
+  ]
 }
 
 export const categories = getAllCategories

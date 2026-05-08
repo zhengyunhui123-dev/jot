@@ -1,7 +1,7 @@
 <script setup>
 import { useRouter } from 'vue-router'
 import { useExpenseStore } from '../stores/expense.js'
-import { formatDateChinese } from '../utils/calendar.js'
+import { formatDateChinese, formatTime } from '../utils/calendar.js'
 import { getCategoryMap, savingReasonMap } from '../data/categories.js'
 
 const categoryMap = getCategoryMap()
@@ -11,6 +11,10 @@ const store = useExpenseStore()
 const paymentLabel = {
   credit: '信用卡',
   cash: '现金'
+}
+
+function formatExpenseTime(item) {
+  return formatTime(item.createdAt)
 }
 
 let longPressTimer = null
@@ -90,6 +94,7 @@ function handleItemClick(id) {
           <div class="item-info">
             <span class="item-name">{{ categoryMap[item.category]?.name || item.category }}</span>
             <span class="item-meta">
+              <template v-if="formatExpenseTime(item)">{{ formatExpenseTime(item) }} · </template>
               {{ paymentLabel[item.paymentMethod] || '' }}
               <template v-if="item.savingAmount"> · 省 {{ item.savingAmount.toFixed(2) }} · {{ savingReasonMap[item.savingReason] || '省钱' }}</template>
               <template v-if="item.note"> · {{ item.note }}</template>

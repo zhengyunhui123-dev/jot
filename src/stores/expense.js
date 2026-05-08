@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import db from '../db/index.js'
 import { isWorkday } from '../utils/calendar.js'
+import { getCanonicalCategoryKey, getRetailAliasKeys } from '../data/categories.js'
 
 export const useExpenseStore = defineStore('expense', () => {
   const expenses = ref([])
@@ -98,20 +99,34 @@ export const useExpenseStore = defineStore('expense', () => {
   })
 
   async function loadExpenses() {
-    expenses.value = await db.expenses.toArray()
+    const retailAliases = getRetailAliasKeys()
+    const rows = await db.expenses.toArray()
+    if (retailAliases.length > 0) {
+      const retailAliasSet = new Set(retailAliases)
+      await Promise.all(rows
+        .filter(item => retailAliasSet.has(item.category))
+        .map(item => db.expenses.update(item.id, { category: 'retail' })))
+    }
+    expenses.value = rows.map(item => ({
+      ...item,
+      category: getCanonicalCategoryKey(item.category)
+    }))
   }
 
   async function addExpense(data) {
-    const record = { ...data, createdAt: Date.now() }
+    const record = { ...data, category: getCanonicalCategoryKey(data.category), createdAt: Date.now() }
     const id = await db.expenses.add(record)
     expenses.value.push({ ...record, id })
   }
 
   async function updateExpense(id, data) {
-    await db.expenses.update(id, data)
+    const normalizedData = data.category
+      ? { ...data, category: getCanonicalCategoryKey(data.category) }
+      : data
+    await db.expenses.update(id, normalizedData)
     const idx = expenses.value.findIndex(e => e.id === id)
     if (idx !== -1) {
-      expenses.value[idx] = { ...expenses.value[idx], ...data }
+      expenses.value[idx] = { ...expenses.value[idx], ...normalizedData }
     }
   }
 

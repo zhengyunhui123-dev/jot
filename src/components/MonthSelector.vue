@@ -32,7 +32,7 @@ const store = useExpenseStore()
 .month-selector {
   position: relative;
   width: 100%;
-  height: 116px;
+  height: 88px;
 }
 
 .month-display {
@@ -50,16 +50,16 @@ const store = useExpenseStore()
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 14px;
+  font-size: 13px;
   color: var(--text-primary);
   font-weight: 800;
   line-height: 1;
 }
 
 .month {
-  margin-top: 10px;
+  margin-top: 7px;
   color: var(--text-primary);
-  font-size: 52px;
+  font-size: 42px;
   font-weight: 800;
   line-height: 1;
   letter-spacing: 0;
@@ -67,9 +67,9 @@ const store = useExpenseStore()
 
 .arrow {
   position: absolute;
-  top: 42px;
-  width: 50px;
-  height: 50px;
+  top: 32px;
+  width: 42px;
+  height: 42px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -81,7 +81,7 @@ const store = useExpenseStore()
 }
 
 .arrow:first-child {
-  left: 34px;
+  left: 30px;
 }
 
 .arrow:active {
@@ -90,20 +90,39 @@ const store = useExpenseStore()
 }
 
 .arrow:last-child {
-  right: 68px;
+  right: 62px;
 }
 
 @media (max-width: 430px) {
   .month-selector {
-    height: 116px;
+    height: 88px;
   }
 
   .arrow:first-child {
-    left: 31px;
+    left: 28px;
   }
 
   .arrow:last-child {
-    right: 64px;
+    right: 58px;
+  }
+}
+
+@media (max-width: 380px) {
+  .month {
+    font-size: 38px;
+  }
+
+  .arrow {
+    width: 40px;
+    height: 40px;
+  }
+
+  .arrow:first-child {
+    left: 22px;
+  }
+
+  .arrow:last-child {
+    right: 54px;
   }
 }
 </style>
