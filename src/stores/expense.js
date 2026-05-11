@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import db from '../db/index.js'
 import { isWorkday } from '../utils/calendar.js'
-import { getCanonicalCategoryKey, getRetailAliasKeys } from '../data/categories.js'
+import { getCanonicalCategoryKey, getSnackAliasKeys } from '../data/categories.js'
 
 export const useExpenseStore = defineStore('expense', () => {
   const expenses = ref([])
@@ -99,13 +99,13 @@ export const useExpenseStore = defineStore('expense', () => {
   })
 
   async function loadExpenses() {
-    const retailAliases = getRetailAliasKeys()
+    const snackAliases = ['retail', ...getSnackAliasKeys()]
     const rows = await db.expenses.toArray()
-    if (retailAliases.length > 0) {
-      const retailAliasSet = new Set(retailAliases)
+    if (snackAliases.length > 0) {
+      const snackAliasSet = new Set(snackAliases)
       await Promise.all(rows
-        .filter(item => retailAliasSet.has(item.category))
-        .map(item => db.expenses.update(item.id, { category: 'retail' })))
+        .filter(item => snackAliasSet.has(item.category))
+        .map(item => db.expenses.update(item.id, { category: 'snack' })))
     }
     expenses.value = rows.map(item => ({
       ...item,
