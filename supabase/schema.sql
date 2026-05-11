@@ -48,6 +48,34 @@ create table if not exists public.accountbook_profiles (
 alter table public.accountbook_profiles
 alter column display_name set default ('momo-' || nextval('public.accountbook_profile_name_seq')::text);
 
+with ordered_profiles as (
+  select
+    user_id,
+    row_number() over (order by updated_at asc, user_id asc) as profile_no
+  from public.accountbook_profiles
+)
+update public.accountbook_profiles target
+set display_name = 'momo-' || ordered_profiles.profile_no::text
+from ordered_profiles
+where target.user_id = ordered_profiles.user_id
+  and target.display_name ~ '^momo-[0-9]+$';
+
+select setval(
+  'public.accountbook_profile_name_seq',
+  greatest(
+    coalesce((
+      select max(substring(display_name from '^momo-([0-9]+)$')::bigint)
+      from public.accountbook_profiles
+      where display_name ~ '^momo-[0-9]+$'
+    ), 0),
+    1
+  ),
+  true
+);
+
+create unique index if not exists accountbook_profiles_display_name_key
+on public.accountbook_profiles (display_name);
+
 alter table public.accountbook_profiles enable row level security;
 
 drop policy if exists "anon can manage own accountbook profile" on public.accountbook_profiles;
