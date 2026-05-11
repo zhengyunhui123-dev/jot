@@ -25,6 +25,7 @@ const showSheet = ref(false)
 const showAddCategory = ref(false)
 const newCategoryName = ref('')
 const formError = ref('')
+const isSubmitting = ref(false)
 
 const savingReasons = [
   { key: 'coupon', name: '用了优惠券' },
@@ -104,6 +105,7 @@ function nextSavingStep() {
 }
 
 async function save() {
+  if (isSubmitting.value) return
   const num = parseFloat(amount.value)
   const expected = parseFloat(expectedAmount.value)
   const isSaving = entryMode.value === 'saving'
@@ -124,6 +126,7 @@ async function save() {
     formError.value = `实际花了 ¥${num.toFixed(2)}，没有低于应花 ¥${expected.toFixed(2)}，不能记录为省钱支出`
     return
   }
+  isSubmitting.value = true
   localStorage.setItem('lastPaymentMethod', paymentMethod.value)
 
   const today = getLocalDateString()
@@ -138,18 +141,32 @@ async function save() {
     note: ''
   }
 
-  if (isEdit.value) {
-    await store.updateExpense(editId.value, data)
-  } else {
-    await store.addExpense(data)
+  try {
+    if (isEdit.value) {
+      await store.updateExpense(editId.value, data)
+    } else {
+      await store.addExpense(data)
+    }
+    router.back()
+  } catch (error) {
+    console.error('Save expense failed:', error)
+    formError.value = '保存失败，请稍后再试'
+    isSubmitting.value = false
   }
-  router.back()
 }
 
 async function remove() {
+  if (isSubmitting.value) return
   if (confirm('确定删除这条记录吗？')) {
-    await store.deleteExpense(editId.value)
-    router.back()
+    isSubmitting.value = true
+    try {
+      await store.deleteExpense(editId.value)
+      router.back()
+    } catch (error) {
+      console.error('Delete expense failed:', error)
+      formError.value = '删除失败，请稍后再试'
+      isSubmitting.value = false
+    }
   }
 }
 </script>
@@ -163,7 +180,7 @@ async function remove() {
         </svg>
       </button>
       <h2>{{ isEdit ? '编辑记录' : '记一笔' }}</h2>
-      <button v-if="isEdit" class="delete-btn" @click="remove">删除</button>
+      <button v-if="isEdit" class="delete-btn" :disabled="isSubmitting" @click="remove">删除</button>
       <span v-else class="header-spacer"></span>
     </div>
 
@@ -244,7 +261,7 @@ async function remove() {
 
           <div class="sheet-footer">
             <button v-if="entryMode === 'saving' && savingStep === 'expected'" class="save-btn" @click="nextSavingStep">下一步：实际花了</button>
-            <button v-else class="save-btn" @click="save">保存</button>
+            <button v-else class="save-btn" :disabled="isSubmitting" @click="save">{{ isSubmitting ? '保存中...' : '保存' }}</button>
           </div>
         </div>
       </div>
@@ -298,6 +315,13 @@ async function remove() {
   padding: 8px 12px;
   border-radius: 14px;
   background: var(--danger-light);
+}
+
+.delete-btn:disabled,
+.save-btn:disabled {
+  cursor: default;
+  opacity: 0.72;
+  transform: none;
 }
 
 .type-toggle {
@@ -605,6 +629,10 @@ async function remove() {
 
 .save-btn:active {
   transform: scale(0.98);
+}
+
+.save-btn:disabled:active {
+  transform: none;
 }
 
 .sheet-enter-active,
