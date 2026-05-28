@@ -32,7 +32,7 @@ const visibleSyncStatus = computed(() => {
 const cloudReady = computed(() => isCloudConfigured())
 const storageHint = computed(() => {
   if (storageMode.value === 'cloud') {
-    return '当前已开启云端备份，本地新增、编辑、删除的记账数据会同步到 Supabase。'
+    return '当前已开启云端备份。数据以本地为准，新增/编辑/删除会自动同步到云端。换设备可通过「数据导入」恢复。'
   }
   return '数据默认保存在浏览器本地 IndexedDB。清除浏览器数据可能导致丢失，建议开启云端存储。'
 })
