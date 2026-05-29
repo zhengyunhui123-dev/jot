@@ -1,23 +1,9 @@
-const USER_ID_KEY = 'accountbook:user-id'
+import { getUserId } from './cloudSync.js'
+
 const USER_NAME_KEY = 'accountbook:user-name'
 const DEFAULT_USER_NAME = 'momo'
 
-function createUserId() {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return `ab_${crypto.randomUUID()}`
-  }
-
-  return `ab_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 10)}`
-}
-
-export function getUserId() {
-  let userId = localStorage.getItem(USER_ID_KEY)
-  if (!userId) {
-    userId = createUserId()
-    localStorage.setItem(USER_ID_KEY, userId)
-  }
-  return userId
-}
+export { getUserId }
 
 export function getUserProfile() {
   let displayName = localStorage.getItem(USER_NAME_KEY)
@@ -39,6 +25,7 @@ export function setUserDisplayName(displayName) {
 
 export function copyUserId() {
   const userId = getUserId()
+  if (!userId) return Promise.resolve()
   if (navigator.clipboard?.writeText) {
     return navigator.clipboard.writeText(userId)
   }

@@ -17,22 +17,14 @@ create table if not exists public.accountbook_expenses (
 
 alter table public.accountbook_expenses enable row level security;
 
-create or replace function public.accountbook_request_user_id()
-returns text
-language sql
-stable
-as $$
-  select nullif(current_setting('request.headers', true)::json ->> 'x-accountbook-user-id', '')
-$$;
-
 drop policy if exists "anon can manage own accountbook backup rows" on public.accountbook_expenses;
 
 create policy "anon can manage own accountbook backup rows"
 on public.accountbook_expenses
 for all
-to anon
-using (user_id = public.accountbook_request_user_id())
-with check (user_id = public.accountbook_request_user_id());
+to authenticated
+using (user_id = auth.uid()::text)
+with check (user_id = auth.uid()::text);
 
 create index if not exists accountbook_expenses_user_id_created_at_idx
 on public.accountbook_expenses (user_id, created_at);
@@ -83,6 +75,37 @@ drop policy if exists "anon can manage own accountbook profile" on public.accoun
 create policy "anon can manage own accountbook profile"
 on public.accountbook_profiles
 for all
-to anon
-using (user_id = public.accountbook_request_user_id())
-with check (user_id = public.accountbook_request_user_id());
+to authenticated
+using (user_id = auth.uid()::text)
+with check (user_id = auth.uid()::text);
+
+-- 迁移函数：将旧 ab_xxx 用户数据迁移到当前登录用户的 UUID
+-- 用法：select public.migrate_accountbook_user('ab_xxx旧ID');
+create or replace function public.migrate_accountbook_user(old_user_id text)
+returns void
+language plpgsql
+security definer
+as $$
+declare
+  new_user_id text;
+begin
+  new_user_id := auth.uid()::text;
+  if old_user_id is null or old_user_id = '' or old_user_id = new_user_id then
+    return;
+  end if;
+
+  update public.accountbook_expenses
+  set user_id = new_user_id, synced_at = now()
+  where user_id = old_user_id;
+
+  insert into public.accountbook_profiles (user_id, display_name, updated_at)
+  select new_user_id, p.display_name, now()
+  from public.accountbook_profiles p
+  where p.user_id = old_user_id
+  on conflict (user_id) do update set
+    display_name = excluded.display_name,
+    updated_at = now();
+
+  delete from public.accountbook_profiles where user_id = old_user_id;
+end;
+$$;

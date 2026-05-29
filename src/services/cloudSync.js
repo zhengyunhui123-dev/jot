@@ -1,13 +1,17 @@
 import { createClient } from '@supabase/supabase-js'
-import { getUserId, getUserProfile, setUserDisplayName } from './userIdentity.js'
 
 const STORAGE_MODE_KEY = 'accountbook:storage-mode'
 const EXPENSE_TABLE_NAME = 'accountbook_expenses'
 const PROFILE_TABLE_NAME = 'accountbook_profiles'
+const USER_ID_CACHE_KEY = 'accountbook:cached-uuid'
+const OLD_USER_ID_KEY = 'accountbook:user-id'
 const CLOUD_MODE = 'cloud'
 const LOCAL_MODE = 'local'
 
 let supabaseClient = null
+let cachedUserId = null
+let authInitialized = false
+let migrationDone = false
 
 function getSupabaseConfig() {
   return {
@@ -18,32 +22,56 @@ function getSupabaseConfig() {
 
 function getSupabaseClient() {
   const { url, anonKey } = getSupabaseConfig()
-  if (!url || !anonKey) {
-    return null
-  }
+  if (!url || !anonKey) return null
 
   if (!supabaseClient) {
-    supabaseClient = createClient(url, anonKey, {
-      global: {
-        headers: {
-          'x-accountbook-user-id': getUserId()
-        }
-      }
-    })
+    supabaseClient = createClient(url, anonKey)
   }
   return supabaseClient
 }
 
+function generateUUID() {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    return crypto.randomUUID()
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16)
+  })
+}
+
+// 不依赖 Supabase 匿名登录，用自管理的固定 UUID
+export async function initAuth() {
+  if (authInitialized) return
+  const client = getSupabaseClient()
+  if (!client) {
+    authInitialized = true
+    return
+  }
+
+  cachedUserId = localStorage.getItem(USER_ID_CACHE_KEY)
+  if (!cachedUserId) {
+    cachedUserId = generateUUID()
+    localStorage.setItem(USER_ID_CACHE_KEY, cachedUserId)
+  }
+
+  authInitialized = true
+}
+
+export function getUserId() {
+  return cachedUserId
+}
+
 function toCloudRow(expense) {
   return {
-    user_id: getUserId(),
+    user_id: cachedUserId,
     local_id: Number(expense.id),
     date: expense.date,
     category: expense.category,
     amount: Number(expense.amount || 0),
     payment_method: expense.paymentMethod || '',
     expected_amount: expense.expectedAmount ?? null,
-    saving_amount: expense.savingAmount ?? 0,
+    saving_amount: expense.savingAmount || 0,
     saving_reason: expense.savingReason || '',
     note: expense.note || '',
     created_at: Number(expense.createdAt || Date.now()),
@@ -73,6 +101,9 @@ function ensureCloudReady() {
   if (!client) {
     throw new Error('请先配置 VITE_SUPABASE_URL 和 VITE_SUPABASE_ANON_KEY')
   }
+  if (!cachedUserId) {
+    throw new Error('认证未就绪，请稍后重试')
+  }
   return client
 }
 
@@ -92,35 +123,29 @@ export function setStorageMode(mode) {
   localStorage.setItem(STORAGE_MODE_KEY, mode === CLOUD_MODE ? CLOUD_MODE : LOCAL_MODE)
 }
 
-export async function syncUserProfileToCloud(profile = getUserProfile()) {
-  if (!isCloudStorageEnabled()) return profile
-  const client = ensureCloudReady()
+// 手动绑定 user_id（用于恢复旧账号数据）
+export function bindUserId(userId) {
+  if (!userId || typeof userId !== 'string') return false
+  cachedUserId = userId.trim()
+  localStorage.setItem(USER_ID_CACHE_KEY, cachedUserId)
+  authInitialized = true
+  return true
+}
 
-  const { data: existing, error: existingError } = await client
-    .from(PROFILE_TABLE_NAME)
-    .select('display_name')
-    .eq('user_id', profile.userId)
-    .maybeSingle()
-  if (existingError) throw existingError
-  if (existing?.display_name) {
-    setUserDisplayName(existing.display_name)
-    return { ...profile, displayName: existing.display_name }
-  }
+export async function syncUserProfileToCloud() {
+  if (!isCloudStorageEnabled()) return null
+  const client = ensureCloudReady()
 
   const { data, error } = await client
     .from(PROFILE_TABLE_NAME)
-    .insert({
-      user_id: profile.userId,
+    .upsert({
+      user_id: cachedUserId,
       updated_at: new Date().toISOString()
-    })
+    }, { onConflict: 'user_id' })
     .select('display_name')
     .single()
   if (error) throw error
-  if (data?.display_name) {
-    setUserDisplayName(data.display_name)
-    return { ...profile, displayName: data.display_name }
-  }
-  return profile
+  return data?.display_name || null
 }
 
 export async function syncExpenseToCloud(expense) {
@@ -138,7 +163,7 @@ export async function deleteExpenseFromCloud(id) {
   const { error } = await client
     .from(EXPENSE_TABLE_NAME)
     .delete()
-    .eq('user_id', getUserId())
+    .eq('user_id', cachedUserId)
     .eq('local_id', Number(id))
   if (error) throw error
 }
@@ -149,7 +174,7 @@ export async function deleteAllCloudExpenses() {
   const { error } = await client
     .from(EXPENSE_TABLE_NAME)
     .delete()
-    .eq('user_id', getUserId())
+    .eq('user_id', cachedUserId)
   if (error) throw error
 }
 
@@ -171,8 +196,34 @@ export async function fetchCloudExpenses() {
   const { data, error } = await client
     .from(EXPENSE_TABLE_NAME)
     .select('*')
-    .eq('user_id', getUserId())
+    .eq('user_id', cachedUserId)
     .order('created_at', { ascending: true })
   if (error) throw error
   return (data || []).map(fromCloudRow)
+}
+
+export async function migrateOldUserId() {
+  if (migrationDone) return
+  const oldId = localStorage.getItem(OLD_USER_ID_KEY)
+  if (!oldId || !cachedUserId || oldId === cachedUserId) {
+    migrationDone = true
+    return
+  }
+
+  const client = ensureCloudReady()
+
+  const { error } = await client.rpc('migrate_accountbook_user', { old_user_id: oldId })
+  if (error) throw error
+
+  localStorage.removeItem(OLD_USER_ID_KEY)
+  migrationDone = true
+}
+
+export async function ensureAuthReady() {
+  await initAuth()
+  await migrateOldUserId()
+}
+
+export function resetMigration() {
+  migrationDone = false
 }
