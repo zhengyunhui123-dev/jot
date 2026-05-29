@@ -46,14 +46,17 @@ const storageHint = computed(() => {
 })
 
 onMounted(async () => {
-  currentUserId.value = getUserId() || ''
   if (isCloudStorageEnabled()) {
     try {
+      await ensureAuthReady()
+      currentUserId.value = getUserId() || ''
       const name = await syncUserProfileToCloud()
       if (name) userProfile.value.displayName = name
     } catch (error) {
       syncStatus.value = error.message || '用户资料同步失败'
     }
+  } else {
+    currentUserId.value = getUserId() || ''
   }
 })
 
@@ -71,6 +74,7 @@ async function switchStorageMode(mode) {
     try {
       resetMigration()
       await ensureAuthReady()
+      currentUserId.value = getUserId() || ''
       setStorageMode('cloud')
       storageMode.value = 'cloud'
       const name = await syncUserProfileToCloud()
