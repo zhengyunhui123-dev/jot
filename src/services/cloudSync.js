@@ -30,17 +30,7 @@ function getSupabaseClient() {
   return supabaseClient
 }
 
-function generateUUID() {
-  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
-    return crypto.randomUUID()
-  }
-  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
-    const r = Math.random() * 16 | 0
-    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16)
-  })
-}
-
-// 不依赖 Supabase 匿名登录，用自管理的固定 UUID
+// 使用 Supabase 匿名登录，优先恢复 session 避免 user_id 漂移
 export async function initAuth() {
   if (authInitialized) return
   const client = getSupabaseClient()
@@ -49,11 +39,20 @@ export async function initAuth() {
     return
   }
 
-  cachedUserId = localStorage.getItem(USER_ID_CACHE_KEY)
-  if (!cachedUserId) {
-    cachedUserId = generateUUID()
+  // 第一步：尝试从 Supabase session 存储恢复（正常刷新页面时会命中）
+  const { data: sessionData } = await client.auth.getSession()
+  if (sessionData.session) {
+    cachedUserId = sessionData.session.user.id
     localStorage.setItem(USER_ID_CACHE_KEY, cachedUserId)
+    authInitialized = true
+    return
   }
+
+  // 第二步：无 session，创建新匿名用户
+  const { data, error } = await client.auth.signInAnonymously()
+  if (error) throw error
+  cachedUserId = data.user.id
+  localStorage.setItem(USER_ID_CACHE_KEY, cachedUserId)
 
   authInitialized = true
 }
