@@ -7,6 +7,7 @@ import {
   bindUserId,
   deleteAllCloudExpenses,
   ensureAuthReady,
+  fetchCloudExpenses,
   getStorageMode,
   getUserId,
   isCloudConfigured,
@@ -66,7 +67,7 @@ async function switchStorageMode(mode) {
     }
 
     isSyncing.value = true
-    syncStatus.value = '正在把本地数据同步到云端...'
+    syncStatus.value = '正在同步数据...'
     try {
       resetMigration()
       await ensureAuthReady()
@@ -74,9 +75,19 @@ async function switchStorageMode(mode) {
       storageMode.value = 'cloud'
       const name = await syncUserProfileToCloud()
       if (name) userProfile.value.displayName = name
+
+      // 先从云端拉取已有数据（恢复旧账号数据）
+      const cloudExpenses = await fetchCloudExpenses()
+      if (cloudExpenses.length > 0) {
+        await db.expenses.bulkPut(cloudExpenses)
+        syncStatus.value = isDebug ? `从云端恢复了 ${cloudExpenses.length} 条记录` : '正在同步数据...'
+      }
+
+      // 再把本地数据推到云端
       const count = await store.syncLocalExpensesToCloud()
       await store.loadExpenses()
-      syncStatus.value = isDebug ? `已开启云端存储，已同步 ${count} 条本地记录` : '已开启云端存储'
+      const total = cloudExpenses.length + count
+      syncStatus.value = isDebug ? `已开启云端存储（云端恢复 ${cloudExpenses.length} 条，本地同步 ${count} 条）` : '已开启云端存储'
     } catch (error) {
       setStorageMode('local')
       storageMode.value = 'local'
